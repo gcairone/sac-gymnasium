@@ -1,15 +1,39 @@
 .pytest_cache/
 __pycache__/
-*.pyc
+.gitignore
+
+Must explicitly ignore:
+
+```text
+# Python
+__pycache__/
+*.py[cod]
 *.pyo
 *.pyd
-*.so
-*.egg-info/
-dist/
-build/
-*.egg
-*.log
-*.vscode/
-*.ipynb_checkpoints/
+.Python
+
+# Generated during training
+logs/*/
+checkpoints/*/
+!logs/.gitkeep
+!checkpoints/.gitkeep
+
+# Testing artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+/tmp/
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
 .idea/
+*.swp
+*.swo
+
+# MuJoCo / Gymnasium
+*.mjb
+mjkey.txt
