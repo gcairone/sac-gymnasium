@@ -28,6 +28,7 @@ def _base_config_dict() -> dict:
         "activation": "relu",
         "warmup_steps": 100,
         "train_freq": 1,
+        "train_log_freq": 1,
         "updates_per_step": 1,
         "eval_freq": 500,
         "eval_episodes": 5,
