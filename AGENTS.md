@@ -70,7 +70,7 @@ Example:
 
 ```bash
 cd sac-gymnasium
-python train.py --env HalfCheetah-v4
+python train.py --env HalfCheetah-v5
 ```
 
 `pytest` is run from the project root:
@@ -107,6 +107,8 @@ python eval.py [options]
 
 Options:
   --agent                STR     'zero' | 'random' | PATH — `zero` = no-op policy, `random` = random-uniform policy, PATH = checkpoint directory containing a trained policy [required]
+  --config               PATH    Path to YAML config file           [default: configs/default.yaml]
+  --env                  ENV_ID  Override env from config          [default: none — use YAML value]
   --episodes             INT     Number of evaluation episodes     [default: 10]
   --max_steps_per_env    INT     Maximum environment steps per episode [default: 500]
   --policy               STR     Policy mode: 'stochastic' | 'deterministic' [default: deterministic]
@@ -114,8 +116,9 @@ Options:
 ```
 
 Notes:
-- If `--agent` is a checkpoint path, the environment MUST be inferred from `meta.json` stored in that checkpoint directory; `--env` is not supported in this case. `meta.json` is required for correct evaluation.
-- If `--agent` is `zero` (no-op policy) or `random` (random-uniform policy), the environment must be specified via the YAML config or by providing `--env` on the CLI.
+- Validation logic: if `--agent` is a path, the script ignores `--config` and `--env` and reads the environment and all necessary metadata from `meta.json` in the checkpoint directory. If `--agent` is `zero` or `random`, the script first loads configuration from the file specified by `--config` (default: `configs/default.yaml`) and then applies an explicit `--env` override if provided.
+- If `--agent` is a checkpoint path, the environment MUST be inferred from `meta.json` stored in that checkpoint directory; `--env` is ignored in this case. `meta.json` is required for correct evaluation.
+- If `--agent` is `zero` (no-op policy) or `random` (random-uniform policy), the environment is taken from the loaded config (and can be overridden with `--env`).
 - `eval.py` is headless (no rendering) and must produce a concise, clear terminal summary of evaluation statistics (mean, std, min, max, episode count, mean episode duration).
 - A per-environment step limit (`--max_steps_per_env`) is provided to avoid episodes that run for unpredictable wall-clock time.
 
@@ -126,6 +129,8 @@ python play.py [options]
 
 Options:
   --agent                 STR     'zero' | 'random' | PATH — `zero` = no-op policy, `random` = random-uniform policy, PATH = checkpoint directory containing a trained policy [required]
+  --config                PATH    Path to YAML config file           [default: configs/default.yaml]
+  --env                   ENV_ID  Override env from config          [default: none — use YAML value]
   --episodes              INT     Number of episodes to render      [default: 3]
   --max_steps_per_episode INT     Maximum steps per episode         [default: 1000]
   --policy                STR     Policy mode: 'stochastic' | 'deterministic' [default: deterministic]
@@ -133,8 +138,9 @@ Options:
 ```
 
 Notes:
-- If `--agent` is a checkpoint path, the environment MUST be inferred from `meta.json` stored in that checkpoint directory; `--env` is not supported in this case.
-- If `--agent` is `zero` (no-op policy) or `random` (random-uniform policy), the environment must be specified via the YAML config or by providing `--env` on the CLI.
+- Validation logic: if `--agent` is a path, the script ignores `--config` and `--env` and reads the environment and all necessary metadata from `meta.json` in the checkpoint directory. If `--agent` is `zero` or `random`, the script first loads configuration from the file specified by `--config` (default: `configs/default.yaml`) and then applies an explicit `--env` override if provided.
+- If `--agent` is a checkpoint path, the environment MUST be inferred from `meta.json` stored in that checkpoint directory; `--env` is ignored in this case.
+- If `--agent` is `zero` (no-op policy) or `random` (random-uniform policy), the environment is taken from the loaded config (and can be overridden with `--env`).
 - `play.py` must enable rendering using `render_mode="human"` with no special graphics configuration required.
 - `--speed` scales the real-time playback rate only; it must not change environment physics or simulator timestep semantics and must avoid producing timestep errors or desynchronization with the renderer.
 - `--max_steps_per_episode` prevents unbounded episodes when interactively viewing runs.
@@ -167,7 +173,7 @@ Logs are stored under `logs/{env_name}/run_{timestamp}/` where `env_name` replac
 Typical run directory contents:
 
 ```
-logs/HalfCheetah_v4/run_20240315_143022/
+logs/HalfCheetah_v5/run_20240315_143022/
 ├── config.yaml
 ├── train.csv
 ├── eval.csv
@@ -185,7 +191,7 @@ Same env_name and timestamp as the corresponding log run (generated together, st
 Contents:
 
 ```text
-checkpoints/HalfCheetah_v4/run_20240315_143022/
+checkpoints/HalfCheetah_v5/run_20240315_143022/
 ├── latest/
 │   ├── actor.pt
 │   ├── critic.pt
@@ -263,6 +269,12 @@ Recommended benchmark progression: `Pendulum-v1` → `HalfCheetah-v5` → `Hoppe
 - No dropout.
 - Actor output: mean and log_std via separate linear heads on a shared trunk.
 - Critic input: concatenated observation and action.
+- `make_mlp` now supports an `output_init_scale` parameter: when set (e.g. `3e-3`)
+  the final linear layer is initialized with a small uniform range. Use this for
+  sensitive outputs such as Q-values (`Critic` should call
+  `make_mlp(..., output_init_scale=3e-3)`). For the `Actor` prefer building a
+  trunk with `make_mlp(..., output_dim=hidden_dim)` and initialize `mean_head`
+  and `log_std_head` separately with `init_weights_uniform`.
 
 ## Hyperparameter Config (configs/default.yaml)
 

@@ -2,9 +2,6 @@
 __pycache__/
 .gitignore
 
-Must explicitly ignore:
-
-```text
 # Python
 __pycache__/
 *.py[cod]
@@ -37,3 +34,5 @@ Thumbs.db
 # MuJoCo / Gymnasium
 *.mjb
 mjkey.txt
+generate_context.sh
+context.txt
