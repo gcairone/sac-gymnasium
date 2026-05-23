@@ -1,0 +1,33 @@
+# configs/default.yaml
+env: Pendulum-v1
+seed: 0
+total_steps: 1_000_000
+
+# SAC
+gamma: 0.99
+tau: 0.005
+lr_actor: 3.0e-4
+lr_critic: 3.0e-4
+lr_alpha: 3.0e-4
+alpha_init: 0.2
+target_entropy: null  # null = auto: -dim(action_space)
+batch_size: 256
+replay_buffer_size: 1_000_000
+gradient_clip_norm: 1.0  # 0 = disabled
+
+# Network
+hidden_dim: 256
+hidden_layers: 2
+activation: relu
+
+# Training schedule
+warmup_steps: 5_000
+train_freq: 1
+updates_per_step: 1
+
+# Evaluation
+eval_freq: 10_000
+eval_episodes: 10
+
+# Checkpointing
+checkpoint_freq: 50_000
