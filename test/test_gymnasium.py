@@ -5,7 +5,7 @@ import numpy as np
 
 
 ENV_IDS = [
-    "Pendulum-v1",
+    "InvertedPendulum-v5",
     "HalfCheetah-v5",
     "Hopper-v5",
     "Walker2d-v5",

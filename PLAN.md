@@ -4,24 +4,24 @@
 
 ```
 Phase 1 — Foundations (no internal dependencies)
-  sac/utils.py
-  sac/config.py
+  sac/utils.py          ← already implemented
+  sac/config.py         ← already implemented
 
 Phase 2 — Neural networks (depend only on utils)
-  sac/actor.py
-  sac/critic.py
+  sac/actor.py          ← already implemented
+  sac/critic.py         ← already implemented
 
 Phase 3 — Algorithm core (depends on actor, critic, replay_buffer, config, utils)
   sac/replay_buffer.py  ← already implemented
-  sac/agent.py
+  sac/agent.py          ← already implemented
 
 Phase 4 — I/O and logging (depends on config, utils)
-  sac/logger.py
+  sac/logger.py         ← already implemented
 
 Phase 5 — Entry points (depend on everything above)
+  eval.py               ← already implemented
+  play.py               ← already implemented
   train.py
-  eval.py
-  play.py
   log_analysis.py
 ```
 
@@ -31,18 +31,6 @@ Phase 5 — Entry points (depend on everything above)
 
 ```python
 # No internal dependencies
-
-def make_mlp(
-    input_dim: int,
-    hidden_dim: int,
-    hidden_layers: int,
-    output_dim: int,
-    activation: str,
-    output_init_scale: float | None = None,  # If set, initialize final linear layer with small uniform
-) -> nn.Sequential
-# Builds a fully-connected MLP with the specified depth, width, and activation.
-# If `output_init_scale` is provided, the final linear layer will be initialized
-# with a small uniform range (useful for sensitive output heads such as Q-values).
 
 def soft_update(target: nn.Module, source: nn.Module, tau: float) -> None
 # Polyak update: θ_target ← τ·θ_source + (1−τ)·θ_target
@@ -146,9 +134,10 @@ class GaussianActor(nn.Module):
         hidden_layers: int,
         activation: str,
     ) -> None
-    # Shared trunk: MLP via make_mlp that produces a `hidden_dim`-sized output.
-    # Use `make_mlp(..., output_dim=hidden_dim, output_init_scale=None)` for the trunk
-    # and initialize `mean_head` / `log_std_head` manually with `init_weights_uniform`.
+    # Shared trunk: MLP built from Linear + activation blocks that produces a
+    # `hidden_dim`-sized output.
+    # Apply `init_weights_orthogonal` to the trunk and initialize
+    # `mean_head` / `log_std_head` with `init_weights_uniform`.
     # mean_head:    nn.Linear(hidden_dim, action_dim)
     # log_std_head: nn.Linear(hidden_dim, action_dim)
     # Hidden layers: orthogonal init. Output heads: small uniform init.
@@ -183,11 +172,9 @@ class QNetwork(nn.Module):
         hidden_layers: int,
         activation: str,
     ) -> None
-    # MLP via make_mlp(obs_dim + action_dim, hidden_dim, hidden_layers, 1, activation,
-    #                  output_init_scale=3e-3).
-    # When called with `output_init_scale=3e-3` the returned network's final linear
-    # layer is initialized with a small uniform range appropriate for Q-value outputs.
-    # Orthogonal init on hidden layers; small uniform init on output layer.
+    # MLP built from Linear + activation blocks ending in a 1-unit output layer.
+    # Apply `init_weights_orthogonal` to all layers, then overwrite the final
+    # linear layer with `init_weights_uniform(..., scale=3e-3)` for Q-value outputs.
 
     def forward(self, obs: Tensor, action: Tensor) -> Tensor
     # Concatenates obs and action along dim=1.
@@ -486,8 +473,8 @@ replay_buffer.py (no internal deps; already implemented)
 agent.py    ←── actor, critic, replay_buffer, config, utils
 logger.py   ←── config, utils
 
-train.py    ←── agent, config, logger, utils
 eval.py     ←── agent, config, utils
 play.py     ←── agent, config, utils
+train.py    ←── agent, config, logger, utils
 log_analysis.py ←── stdlib + matplotlib only
 ```

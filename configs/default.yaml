@@ -1,5 +1,5 @@
 # configs/default.yaml
-env: Pendulum-v1
+env: InvertedPendulum-v5
 seed: 0
 total_steps: 1_000_000
 

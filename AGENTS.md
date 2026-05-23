@@ -260,7 +260,18 @@ Implemented from scratch:
 
 Use Gymnasium continuous control environments as provided. No reward scaling, observation normalization, or action repeat. Use `gymnasium.make(env_id)` only. `render_mode` is set only in `play.py`.
 
-Recommended benchmark progression: `Pendulum-v1` → `HalfCheetah-v5` → `Hopper-v5` → `Walker2d-v5` → `Humanoid-v5`.
+Recommended benchmark progression, from simpler to harder:
+"InvertedPendulum-v5"
+"InvertedDoublePendulum-v5"
+"Reacher-v5"
+"Pusher-v5"
+"HalfCheetah-v5"
+"Hopper-v5"
+"Walker2d-v5"
+"Swimmer-v5"
+"Ant-v5"
+"Humanoid-v5"
+"HumanoidStandup-v5"
 
 ## Network Architecture
 
@@ -269,18 +280,17 @@ Recommended benchmark progression: `Pendulum-v1` → `HalfCheetah-v5` → `Hoppe
 - No dropout.
 - Actor output: mean and log_std via separate linear heads on a shared trunk.
 - Critic input: concatenated observation and action.
-- `make_mlp` now supports an `output_init_scale` parameter: when set (e.g. `3e-3`)
-  the final linear layer is initialized with a small uniform range. Use this for
-  sensitive outputs such as Q-values (`Critic` should call
-  `make_mlp(..., output_init_scale=3e-3)`). For the `Actor` prefer building a
-  trunk with `make_mlp(..., output_dim=hidden_dim)` and initialize `mean_head`
-  and `log_std_head` separately with `init_weights_uniform`.
+- Weight initialization is explicit in the `Actor` and `Critic` implementations.
+  For the `Actor`, apply orthogonal init to the trunk and initialize
+  `mean_head` and `log_std_head` with small uniform weights. For the `Critic`,
+  apply orthogonal init to all layers and then overwrite only the final layer
+  with a small uniform init (e.g. `3e-3`).
 
 ## Hyperparameter Config (configs/default.yaml)
 
 ```yaml
 # configs/default.yaml
-env: Pendulum-v1
+env: InvertedPendulum-v5
 seed: 0
 total_steps: 1_000_000
 
@@ -321,7 +331,7 @@ checkpoint_freq: 50_000
 - Single-environment, single-process training loop.
 - MLP networks only (no CNN, no RNN).
 
-Target training times: Pendulum ~10 min, HalfCheetah ~1 h, Hopper ~1–2 h, Humanoid ~8–12 h.
+
 
 ## Performance Constraints
 
