@@ -21,7 +21,7 @@ Phase 4 — I/O and logging (depends on config, utils)
 Phase 5 — Entry points (depend on everything above)
   eval.py               ← already implemented
   play.py               ← already implemented
-  train.py
+  train.py              ← already implemented
   log_analysis.py
 ```
 
