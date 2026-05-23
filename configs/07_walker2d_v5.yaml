@@ -1,5 +1,5 @@
-# configs/1_invertedpendulum_v5.yaml
-env: InvertedPendulum-v5
+# configs/07_walker2d_v5.yaml
+env: Walker2d-v5
 seed: 0
 total_steps: 50_000
 

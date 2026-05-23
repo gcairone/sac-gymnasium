@@ -7,7 +7,7 @@ import time
 import gymnasium as gym
 
 def main() -> None:
-    env = gym.make("InvertedPendulum-v5", render_mode="human")
+    env = gym.make("InvertedDoublePendulum-v5", render_mode="human")
 
     obs, info = env.reset(seed=42)
     print("Environment initialized successfully. Opening window...")
