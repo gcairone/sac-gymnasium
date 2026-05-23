@@ -59,6 +59,25 @@ class RunLogger:
             float(metrics["entropy"]),
         ]
         self._train_writer.writerow(row)
+        # Also emit a structured event for training metrics so they appear
+        # in events.jsonl. This mirrors train.csv but is useful for event-based
+        # tooling and keeps both logs consistent.
+        try:
+            payload = {
+                "step": int(step),
+                "actor_loss": float(metrics["actor_loss"]),
+                "critic_loss": float(metrics["critic_loss"]),
+                "alpha_loss": float(metrics["alpha_loss"]),
+                "alpha": float(metrics["alpha"]),
+                "mean_q": float(metrics["mean_q"]),
+                "entropy": float(metrics["entropy"]),
+            }
+            # write as a 'train' event
+            self.log_event("train", payload)
+        except Exception:
+            # Logging should not raise during training; ignore event write errors
+            # and keep CSV logging functional.
+            pass
 
     def log_eval(self, step: int, metrics: dict[str, float]) -> None:
         row = [

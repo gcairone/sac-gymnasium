@@ -314,6 +314,7 @@ activation: relu
 # Training schedule
 warmup_steps: 5_000
 train_freq: 1
+train_log_freq: 1
 updates_per_step: 1
 
 # Evaluation
@@ -357,6 +358,10 @@ checkpoint_freq: 50_000
 - Terminal logging with `logging` (INFO default, DEBUG with `--verbose`).
 - `train.csv` and `eval.csv` written with the `csv` stdlib module (no pandas).
 - `events.jsonl` written with `json.dumps` + newline per event.
+- **Train logging frequency**: `train_log_freq` controls how often training metrics
+  are written (in environment steps). Set to `1` to write every step, or higher
+  to reduce I/O and the number of rows in `train.csv`/`events.jsonl` without
+  changing update behaviour.
 - No TensorBoard or Weights & Biases.
 - `log_analysis.py` uses `matplotlib`; plots can be saved as `.png` with `--save`.
 

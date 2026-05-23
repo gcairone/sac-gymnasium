@@ -192,7 +192,8 @@ def train(cfg: SACConfig | None, resume_path: Path | None) -> None:
                         metrics: dict[str, float] | None = None
                         for _ in range(cfg.updates_per_step):
                             metrics = agent.train_step()
-                        if metrics is not None:
+                        # Log training metrics only every cfg.train_log_freq env steps
+                        if metrics is not None and (state.step % cfg.train_log_freq == 0):
                             logger.log_train(state.step, metrics)
 
                 if state.step % cfg.eval_freq == 0:

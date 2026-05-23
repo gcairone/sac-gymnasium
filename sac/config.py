@@ -29,6 +29,7 @@ class SACConfig:
     activation: str
     warmup_steps: int
     train_freq: int
+    train_log_freq: int
     updates_per_step: int
     eval_freq: int
     eval_episodes: int
@@ -97,6 +98,7 @@ def _validate_and_normalize(values: dict[str, Any]) -> dict[str, Any]:
         "activation",
         "warmup_steps",
         "train_freq",
+        "train_log_freq",
         "updates_per_step",
         "eval_freq",
         "eval_episodes",
@@ -136,6 +138,7 @@ def _validate_and_normalize(values: dict[str, Any]) -> dict[str, Any]:
 
     warmup_steps = _require_int(values["warmup_steps"], "warmup_steps", min_value=0)
     train_freq = _require_int(values["train_freq"], "train_freq", min_value=1)
+    train_log_freq = _require_int(values["train_log_freq"], "train_log_freq", min_value=1)
     updates_per_step = _require_int(values["updates_per_step"], "updates_per_step", min_value=1)
     eval_freq = _require_int(values["eval_freq"], "eval_freq", min_value=1)
     eval_episodes = _require_int(values["eval_episodes"], "eval_episodes", min_value=1)
@@ -160,6 +163,7 @@ def _validate_and_normalize(values: dict[str, Any]) -> dict[str, Any]:
         "activation": activation,
         "warmup_steps": warmup_steps,
         "train_freq": train_freq,
+        "train_log_freq": train_log_freq,
         "updates_per_step": updates_per_step,
         "eval_freq": eval_freq,
         "eval_episodes": eval_episodes,
