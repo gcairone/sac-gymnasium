@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import gymnasium as gym
 import numpy as np
@@ -27,7 +27,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--env", default=env_default, help="Override environment id")
     parser.add_argument("--episodes", type=int, default=10, help="Number of evaluation episodes")
     parser.add_argument(
-        "--max_steps_per_env",
+        "--max_steps_per_episode",
         type=int,
         default=500,
         help="Maximum steps per episode",
@@ -69,12 +69,18 @@ def run_evaluation(
     n_episodes: int,
     max_steps: int,
     deterministic: bool,
+    seed: int | None = None,
 ) -> dict[str, float]:
     returns: list[float] = []
     durations: list[int] = []
 
     for _ in range(n_episodes):
-        obs, _ = env.reset()
+        if seed is None:
+            obs, _ = env.reset()
+        else:
+            # increment seed per episode to avoid identical initial states
+            idx = len(returns)
+            obs, _ = env.reset(seed=seed + idx)
         total_reward = 0.0
         steps = 0
 
@@ -142,8 +148,9 @@ def main() -> None:
             agent=agent,
             env=env,
             n_episodes=args.episodes,
-            max_steps=args.max_steps_per_env,
+            max_steps=args.max_steps_per_episode,
             deterministic=args.policy == "deterministic",
+            seed=args.seed,
         )
     finally:
         env.close()

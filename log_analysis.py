@@ -5,8 +5,9 @@ import csv
 from pathlib import Path
 from typing import Dict, List
 
+import matplotlib
+matplotlib.use("TkAgg")  # o "Qt5Agg"
 import matplotlib.pyplot as plt
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Plot SAC training logs.")

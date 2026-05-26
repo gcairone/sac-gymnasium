@@ -10,6 +10,7 @@ import numpy as np
 
 from sac.agent import SACAgent
 from sac.config import SACConfig, build_config, load_yaml
+from sac import utils
 
 
 def parse_args() -> argparse.Namespace:
@@ -43,6 +44,7 @@ def parse_args() -> argparse.Namespace:
         default=1.0,
         help="Playback speed multiplier (e.g. 2.0, 0.5)",
     )
+    parser.add_argument("--seed", type=int, default=42, help="Random seed")
     return parser.parse_args()
 
 
@@ -81,11 +83,15 @@ def run_episode(
     max_steps: int,
     deterministic: bool,
     speed: float,
+    seed: int | None = None,
 ) -> float:
     if speed <= 0.0:
         raise ValueError("--speed must be positive")
 
-    obs, _ = env.reset()
+    if seed is None:
+        obs, _ = env.reset()
+    else:
+        obs, _ = env.reset(seed=seed)
     total_reward = 0.0
     dt = _get_env_dt(env)
     target_step_time = dt / speed
@@ -119,14 +125,23 @@ def main() -> None:
 
     agent, env = load_agent_and_env(args.agent, cfg)
 
+    # Seed RNGs for reproducibility
+    utils.set_seed(args.seed)
     try:
-        for _ in range(args.episodes):
+        env.action_space.seed(args.seed)
+    except Exception:
+        # Some envs may not support seeding of the action space.
+        pass
+
+    try:
+        for episode_idx in range(args.episodes):
             run_episode(
                 agent=agent,
                 env=env,
                 max_steps=args.max_steps_per_episode,
                 deterministic=args.policy == "deterministic",
                 speed=args.speed,
+                seed=(args.seed + episode_idx) if args.seed is not None else None,
             )
     finally:
         env.close()
