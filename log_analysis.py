@@ -4,10 +4,10 @@ import argparse
 import csv
 from pathlib import Path
 from typing import Dict, List
+import os
 
 import matplotlib
-matplotlib.use("TkAgg")  # o "Qt5Agg"
-import matplotlib.pyplot as plt
+plt = None  # will be imported with the appropriate backend in main()
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Plot SAC training logs.")
@@ -140,6 +140,12 @@ def plot_eval_metrics(
 
 def main() -> None:
     args = parse_args()
+    # select backend: use Agg when saving or when no DISPLAY is available
+    use_agg = args.save or ("DISPLAY" not in os.environ)
+    backend = "Agg" if use_agg else "TkAgg"
+    matplotlib.use(backend)
+    import matplotlib.pyplot as _plt
+    globals()['plt'] = _plt
     log_dir = Path(args.log_dir)
     if not log_dir.exists():
         raise ValueError(f"log_dir not found: {log_dir}")

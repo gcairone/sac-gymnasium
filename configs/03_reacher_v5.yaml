@@ -1,7 +1,7 @@
 # configs/03_reacher_v5.yaml
 env: Reacher-v5
 seed: 0
-total_steps: 50_000
+total_steps: 200_000
 
 # SAC
 gamma: 0.99
