@@ -1,7 +1,6 @@
-# configs/08_swimmer_v5.yaml
 env: Swimmer-v5
 seed: 0
-total_steps: 50_000
+total_steps: 2_000_000
 
 # SAC
 gamma: 0.99
@@ -10,10 +9,10 @@ lr_actor: 3.0e-4
 lr_critic: 3.0e-4
 lr_alpha: 3.0e-4
 alpha_init: 0.2
-target_entropy: null  # null = auto: -dim(action_space)
+target_entropy: -1.0  # MODIFICATO (Default auto sarebbe -2.0)
 batch_size: 256
-replay_buffer_size: 100_000
-gradient_clip_norm: 1.0  # 0 = disabled
+replay_buffer_size: 1_000_000
+gradient_clip_norm: 1.0  # Mantieni attivo per stabilizzare i gradienti
 
 # Network
 hidden_dim: 256
@@ -21,7 +20,7 @@ hidden_layers: 2
 activation: relu
 
 # Training schedule
-warmup_steps: 5_000
+warmup_steps: 10_000  # MODIFICATO (Più passi per riempire il buffer di puro caos iniziale)
 train_freq: 1
 train_log_freq: 50
 updates_per_step: 1
@@ -31,4 +30,4 @@ eval_freq: 1_000
 eval_episodes: 10
 
 # Checkpointing
-checkpoint_freq: 10_000
+checkpoint_freq: 100_000
