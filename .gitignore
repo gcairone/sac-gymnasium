@@ -37,7 +37,4 @@ mjkey.txt
 generate_context.sh
 context.txt
 train_profile.py
-train_profile.pstats
-todo.txt
-gpu_data
-relazione
+.ipynb_checkpoints

@@ -12,7 +12,7 @@ lr_alpha: 3.0e-4
 alpha_init: 0.2
 target_entropy: null  # null = auto: -dim(action_space)
 batch_size: 256
-replay_buffer_size: 100_000
+replay_buffer_size: 1_000_000
 gradient_clip_norm: 1.0  # 0 = disabled
 
 # Network
@@ -21,7 +21,7 @@ hidden_layers: 2
 activation: relu
 
 # Training schedule
-warmup_steps: 5_000
+warmup_steps: 20_000
 train_freq: 1
 train_log_freq: 50
 updates_per_step: 1
@@ -31,4 +31,4 @@ eval_freq: 1_000
 eval_episodes: 10
 
 # Checkpointing
-checkpoint_freq: 10_000
+checkpoint_freq: 100_000

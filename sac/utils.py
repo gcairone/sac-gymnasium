@@ -63,8 +63,9 @@ def set_seed(seed: int) -> None:
 
 
 def get_device() -> torch.device:
+    if torch.cuda.is_available():
+        return torch.device("cuda")
     return torch.device("cpu")
-
 
 def get_activation(name: str) -> Callable[[], nn.Module]:
     activations = {
