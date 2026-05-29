@@ -4,15 +4,15 @@ total_steps: 2_000_000
 
 # SAC
 gamma: 0.99
-tau: 0.005
+tau: 0.002
 lr_actor: 3.0e-4
 lr_critic: 3.0e-4
 lr_alpha: 3.0e-4
 alpha_init: 0.2
-target_entropy: -1.0  # MODIFICATO (Default auto sarebbe -2.0)
+target_entropy: -0.5  
 batch_size: 256
 replay_buffer_size: 1_000_000
-gradient_clip_norm: 1.0  # Mantieni attivo per stabilizzare i gradienti
+gradient_clip_norm: 1.0  
 
 # Network
 hidden_dim: 256
@@ -20,7 +20,7 @@ hidden_layers: 2
 activation: relu
 
 # Training schedule
-warmup_steps: 10_000  # MODIFICATO (Più passi per riempire il buffer di puro caos iniziale)
+warmup_steps: 100_000  
 train_freq: 1
 train_log_freq: 50
 updates_per_step: 1

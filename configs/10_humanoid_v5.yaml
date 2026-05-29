@@ -1,34 +1,35 @@
 # configs/10_humanoid_v5.yaml
 env: Humanoid-v5
 seed: 0
-total_steps: 50_000
+total_steps: 2_000_000  # Humanoid richiede tempo, 50k sono solo per test, impostalo a 2M per un vero train
 
-# SAC
+# SAC - Hyperparameters riprogettati per stabilità
 gamma: 0.99
 tau: 0.005
-lr_actor: 3.0e-4
-lr_critic: 3.0e-4
-lr_alpha: 3.0e-4
-alpha_init: 0.2
-target_entropy: null  # null = auto: -dim(action_space)
-batch_size: 256
-replay_buffer_size: 100_000
-gradient_clip_norm: 1.0  # 0 = disabled
+lr_actor: 1.0e-4        # Ridotto: l'attore deve muoversi con i piedi di piombo
+lr_critic: 3.0e-4       # Standard: il critic deve essere abbastanza veloce da inseguire il reward
+lr_alpha: 3.0e-5        # CRITICO: Abbassato di un ordine di grandezza per evitare il bump a 10^8
+alpha_init: 0.05        # Più basso: partiamo con meno peso sull'esplorazione entropica casuale
+target_entropy: -17.0   # Forzato: l'azione ha dim=17. Invece di 'null' (-17), prova a mettere -17.0 o addirittura -20.0 per forzare meno caos
 
-# Network
+batch_size: 512         # Ottimo compromesso tra i 256 (instabili) e i 1024 (lenti) del tuo tentativo
+replay_buffer_size: 1_000_000
+gradient_clip_norm: 0.5 # Più stringente: dimezzato da 1.0 a 0.5 per troncare sul nascere le esplosioni a 10^20
+
+# Network - Più capacità e stabilità numerica
 hidden_dim: 256
-hidden_layers: 2
-activation: relu
+hidden_layers: 3        # Aumentato il depth: 3 layer aiutano a mappare la coordinazione complessa del corpo
+activation: relu 
 
 # Training schedule
-warmup_steps: 5_000
+warmup_steps: 50_000    # Più step di warmup per riempire il buffer con azioni varie prima di aggiornare alpha
 train_freq: 1
-train_log_freq: 50
+train_log_freq: 100
 updates_per_step: 1
 
 # Evaluation
-eval_freq: 1_000
+eval_freq: 10_000
 eval_episodes: 10
 
 # Checkpointing
-checkpoint_freq: 10_000
+checkpoint_freq: 100_000
