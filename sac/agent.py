@@ -84,7 +84,8 @@ class SACAgent:
         done: bool,
         next_obs: np.ndarray,
     ) -> None:
-        self.replay_buffer.add(obs, action, reward, done, next_obs)
+        scaled_reward = self._scale_reward(reward)
+        self.replay_buffer.add(obs, action, scaled_reward, done, next_obs)
 
     def train_step(self) -> dict[str, float]:
         batch = self.replay_buffer.sample(self.cfg.batch_size)
@@ -218,6 +219,10 @@ class SACAgent:
     @staticmethod
     def _serialize_config(cfg: SACConfig) -> dict[str, Any]:
         data = asdict(cfg)
+        if not data.get("reward_scale_enabled", False):
+            data.pop("reward_scale_enabled", None)
+            data.pop("reward_scale", None)
+            data.pop("reward_clip", None)
         data["log_dir"] = str(cfg.log_dir)
         data["checkpoint_dir"] = str(cfg.checkpoint_dir)
         return data
@@ -225,9 +230,25 @@ class SACAgent:
     @staticmethod
     def _deserialize_config(data: dict[str, Any]) -> SACConfig:
         data = dict(data)
+        if "reward_scale_enabled" not in data:
+            data["reward_scale_enabled"] = False
+        if "reward_scale" not in data:
+            data["reward_scale"] = 1.0
+        if "reward_clip" not in data:
+            data["reward_clip"] = 0.0
         data["log_dir"] = Path(data["log_dir"])
         data["checkpoint_dir"] = Path(data["checkpoint_dir"])
         return SACConfig(**data)
+
+    def _scale_reward(self, reward: float) -> float:
+        if not self.cfg.reward_scale_enabled:
+            return float(reward)
+        scaled = float(reward) * float(self.cfg.reward_scale)
+        if self.cfg.reward_clip > 0.0:
+            scaled = float(
+                np.clip(scaled, -self.cfg.reward_clip, self.cfg.reward_clip)
+            )
+        return scaled
 
     def _prepare_obs(self, obs: np.ndarray) -> Tensor:
         obs_arr = np.asarray(obs, dtype=np.float32)

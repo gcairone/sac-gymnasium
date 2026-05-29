@@ -26,6 +26,9 @@ def _make_cfg(tmp_path: Path, tau: float = 0.5) -> SACConfig:
         lr_alpha=1e-3,
         alpha_init=0.2,
         target_entropy=None,
+        reward_scale_enabled=False,
+        reward_scale=1.0,
+        reward_clip=0.0,
         batch_size=4,
         replay_buffer_size=100,
         gradient_clip_norm=0.5,
@@ -117,6 +120,21 @@ def test_agent_train_step_updates_targets_and_metrics(tmp_path: Path) -> None:
     for param in agent.critic.q2_target.parameters():
         target_sum += float(param.abs().sum().item())
     assert target_sum > 0.0
+
+
+def test_reward_scaling_applies_before_clip(tmp_path: Path) -> None:
+    cfg = _make_cfg(tmp_path)
+    cfg.reward_scale_enabled = True
+    cfg.reward_scale = 2.0
+    cfg.reward_clip = 1.0
+    agent = SACAgent(obs_dim=3, action_dim=2, cfg=cfg)
+
+    obs = np.zeros((3,), dtype=np.float32)
+    action = np.zeros((2,), dtype=np.float32)
+    agent.store_transition(obs, action, 0.8, False, obs)
+
+    stored = agent.replay_buffer.sample(1)["rewards"].item()
+    assert np.isclose(stored, 1.0)
 
 
 def test_agent_save_and_load_roundtrip(tmp_path: Path) -> None:

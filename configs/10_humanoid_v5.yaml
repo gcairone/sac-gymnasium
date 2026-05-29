@@ -10,6 +10,9 @@ lr_critic: 3.0e-4
 lr_alpha: 3.0e-4          
 alpha_init: 0.05        
 target_entropy: -17.0   
+reward_scale_enabled: false
+reward_scale: 1.0
+reward_clip: 0.0
 
 batch_size: 1024
 replay_buffer_size: 1_000_000

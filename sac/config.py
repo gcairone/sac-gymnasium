@@ -21,6 +21,9 @@ class SACConfig:
     lr_alpha: float
     alpha_init: float
     target_entropy: float | None
+    reward_scale_enabled: bool
+    reward_scale: float
+    reward_clip: float
     batch_size: int
     replay_buffer_size: int
     gradient_clip_norm: float
@@ -70,6 +73,10 @@ def build_config(yaml_path: str | Path, overrides: dict[str, Any]) -> SACConfig:
 
 def save_config(cfg: SACConfig, path: str | Path) -> None:
     data = asdict(cfg)
+    if not data.get("reward_scale_enabled", False):
+        data.pop("reward_scale_enabled", None)
+        data.pop("reward_scale", None)
+        data.pop("reward_clip", None)
     data["log_dir"] = str(cfg.log_dir)
     data["checkpoint_dir"] = str(cfg.checkpoint_dir)
     out_path = Path(path)
@@ -123,6 +130,21 @@ def _validate_and_normalize(values: dict[str, Any]) -> dict[str, Any]:
     if target_entropy is not None:
         target_entropy = _require_float(target_entropy, "target_entropy")
 
+    reward_scale_enabled = values.get("reward_scale_enabled", False)
+    if reward_scale_enabled is None:
+        reward_scale_enabled = False
+    reward_scale_enabled = _require_bool(reward_scale_enabled, "reward_scale_enabled")
+    if reward_scale_enabled:
+        reward_scale = _require_float(
+            values.get("reward_scale", 1.0), "reward_scale", min_value=0.0
+        )
+        reward_clip = _require_float(
+            values.get("reward_clip", 0.0), "reward_clip", min_value=0.0
+        )
+    else:
+        reward_scale = 1.0
+        reward_clip = 0.0
+
     batch_size = _require_int(values["batch_size"], "batch_size", min_value=1)
     replay_buffer_size = _require_int(
         values["replay_buffer_size"], "replay_buffer_size", min_value=1
@@ -155,6 +177,9 @@ def _validate_and_normalize(values: dict[str, Any]) -> dict[str, Any]:
         "lr_alpha": lr_alpha,
         "alpha_init": alpha_init,
         "target_entropy": target_entropy,
+        "reward_scale_enabled": reward_scale_enabled,
+        "reward_scale": reward_scale,
+        "reward_clip": reward_clip,
         "batch_size": batch_size,
         "replay_buffer_size": replay_buffer_size,
         "gradient_clip_norm": gradient_clip_norm,
@@ -193,6 +218,12 @@ def _require_float(
     if max_value is not None and float_value > max_value:
         raise ValueError(f"{name} must be <= {max_value}")
     return float_value
+
+
+def _require_bool(value: Any, name: str) -> bool:
+    if not isinstance(value, bool):
+        raise ValueError(f"{name} must be a bool")
+    return value
 
 
 def _require_str(value: Any, name: str) -> str:
