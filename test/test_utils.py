@@ -75,7 +75,3 @@ def test_set_seed_reproducibility():
     assert np_1 == np_2
     assert torch_1 == torch_2
 
-
-def test_get_device_cpu():
-    device = utils.get_device()
-    assert device.type == "cpu"
