@@ -73,9 +73,9 @@ def test_save_config_round_trip(tmp_path: Path) -> None:
     assert saved["env"] == "InvertedPendulum-v5"
     assert saved["timestamp"] == "20240101_010203"
     assert saved["log_dir"] == "logs/InvertedPendulum_v5/run_20240101_010203"
-    assert "reward_scale_enabled" not in saved
-    assert "reward_scale" not in saved
-    assert "reward_clip" not in saved
+    assert saved["reward_scale_enabled"] is False
+    assert saved["reward_scale"] == 1.0
+    assert saved["reward_clip"] == 0.0
 
 
 def test_build_config_validation_errors(tmp_path: Path) -> None:

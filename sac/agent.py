@@ -219,10 +219,6 @@ class SACAgent:
     @staticmethod
     def _serialize_config(cfg: SACConfig) -> dict[str, Any]:
         data = asdict(cfg)
-        if not data.get("reward_scale_enabled", False):
-            data.pop("reward_scale_enabled", None)
-            data.pop("reward_scale", None)
-            data.pop("reward_clip", None)
         data["log_dir"] = str(cfg.log_dir)
         data["checkpoint_dir"] = str(cfg.checkpoint_dir)
         return data
