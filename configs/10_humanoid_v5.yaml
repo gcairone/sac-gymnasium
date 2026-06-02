@@ -1,35 +1,27 @@
 # configs/10_humanoid_v5.yaml
 env: Humanoid-v5
 seed: 0
-total_steps: 3_000_000
-
+total_steps: 3000000
 gamma: 0.99
-tau: 0.005
-lr_actor: 1.0e-4        
-lr_critic: 3.0e-4       
-lr_alpha: 3.0e-4          
-alpha_init: 0.05        
-target_entropy: -17.0   
+tau: 0.002
+lr_actor: 0.0001
+lr_critic: 0.0001
+lr_alpha: 0.0001
+alpha_init: 0.1
+target_entropy: -12.0
 reward_scale_enabled: false
 reward_scale: 1.0
 reward_clip: 0.0
-
-batch_size: 1024
-replay_buffer_size: 1_000_000
-gradient_clip_norm: 1.0 
-
-hidden_dim: 512         
-hidden_layers: 2
-activation: relu        
-
-# Training schedule
-warmup_steps: 10_000
-train_freq: 1
+batch_size: 256
+replay_buffer_size: 3000000
+gradient_clip_norm: 1.0
+hidden_dim: 256
+hidden_layers: 3
+activation: silu
+warmup_steps: 10000
+train_freq: 10
 train_log_freq: 100
-updates_per_step: 1
-
-# Evaluation
-eval_freq: 10_000
+updates_per_step: 10
+eval_freq: 10000
 eval_episodes: 10
-# Checkpointing
-checkpoint_freq: 100_000
+checkpoint_freq: 100000
