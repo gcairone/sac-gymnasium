@@ -1,37 +1,37 @@
-# configs/10_humanoidstandup_v5.yaml
+# configs/11_humanoid_standup_v5.yaml
 env: HumanoidStandup-v5
 seed: 0
-total_steps: 10_000_000
+total_steps: 3_000_000
 
-# --- Dinamiche Long-Horizon ---
-gamma: 0.99
-tau: 0.001
-lr_actor: 1.0e-4        
-lr_critic: 1.0e-4       
-lr_alpha: 1.0e-4          
-alpha_init: 1.0       
+# SAC - Il protocollo di contenimento numerico
+gamma: 0.99              
+tau: 0.002
+lr_actor: 3.0e-4        
+lr_critic: 3.0e-4       
+lr_alpha: 3.0e-4          
+alpha_init: 0.2         
 target_entropy: -17.0   
+reward_scale_enabled: false
+reward_scale: 1.0
+reward_clip: 0.0
 
-# --- Protezione Numerica Base ---
-reward_scale_enabled: true
-reward_scale: 0.01
-reward_clip: 50.0
+batch_size: 256
+replay_buffer_size: 1_000_000
+gradient_clip_norm: 0.5 
 
-# --- Replay & Ottimizzazione ---
-batch_size: 512
-replay_buffer_size: 3_000_000
-gradient_clip_norm: 1.0 
-
-# --- Architettura ---
-hidden_dim: 256         
+hidden_dim: 256        
 hidden_layers: 2
-activation: relu        
+activation: relu       
 
-# --- Schedulazione ---
+# Training schedule
 warmup_steps: 10_000
-train_freq: 10
+train_freq: 1
 train_log_freq: 100
 updates_per_step: 1
+
+# Evaluation
 eval_freq: 10_000
 eval_episodes: 10
-checkpoint_freq: 1_000_000
+
+# Checkpointing
+checkpoint_freq: 100_000

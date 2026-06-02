@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import torch
 from torch import Tensor, nn
-from torch.nn import functional as F
 from torch.distributions import Normal
-import numpy as np
+
 from sac import utils
 
 LOG_STD_MIN: float = -5.0
@@ -45,7 +44,6 @@ class GaussianActor(nn.Module):
 
         utils.init_weights_uniform(self.mean_head, HEAD_INIT_SCALE)
         utils.init_weights_uniform(self.log_std_head, HEAD_INIT_SCALE)
-        self.register_buffer("log_2", torch.tensor(np.log(2.0), dtype=torch.float32))
 
     def forward(self, obs: Tensor) -> tuple[Tensor, Tensor]:
         features = self.trunk(obs)
@@ -60,11 +58,9 @@ class GaussianActor(nn.Module):
         normal = Normal(mean, std)
         z = normal.rsample()
         action = torch.tanh(z)
-        
-        log_prob_raw = normal.log_prob(z)
-        correction = 2.0 * (self.log_2 - z - F.softplus(-2.0 * z))
-        
-        log_prob = (log_prob_raw - correction).sum(dim=1, keepdim=True)
+        log_prob = normal.log_prob(z).sum(dim=1, keepdim=True)
+        correction = torch.log(1.0 - action.pow(2) + 1e-6).sum(dim=1, keepdim=True)
+        log_prob = log_prob - correction
         return action, log_prob
 
     def deterministic_action(self, obs: Tensor) -> Tensor:

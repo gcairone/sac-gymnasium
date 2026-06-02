@@ -101,8 +101,6 @@ class SACAgent:
         actor_loss, log_prob = self._compute_actor_loss(batch)
         self.actor_optim.zero_grad()
         actor_loss.backward()
-        if self.cfg.gradient_clip_norm > 0.0:
-            torch.nn.utils.clip_grad_norm_(self.actor.parameters(), self.cfg.gradient_clip_norm)
         self.actor_optim.step()
 
         alpha_loss = self._compute_alpha_loss(log_prob)
