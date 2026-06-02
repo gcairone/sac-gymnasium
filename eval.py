@@ -7,6 +7,7 @@ from typing import Any, Optional
 
 import gymnasium as gym
 import numpy as np
+import torch
 
 from sac.agent import SACAgent
 from sac.config import SACConfig, build_config, load_yaml
@@ -53,7 +54,7 @@ def load_agent_and_env(agent_arg: str, cfg: SACConfig) -> tuple[SACAgent | str, 
         if not env_id:
             raise ValueError("meta.json missing env_id")
         env = gym.make(env_id)
-        agent = SACAgent.load(path)
+        agent = load_agent_checkpoint(path)
         return agent, env
 
     if agent_arg not in {"zero", "random"}:
@@ -61,6 +62,35 @@ def load_agent_and_env(agent_arg: str, cfg: SACConfig) -> tuple[SACAgent | str, 
 
     env = gym.make(cfg.env)
     return agent_arg, env
+
+
+def load_agent_checkpoint(path: Path) -> SACAgent:
+    meta = json.loads((path / "meta.json").read_text(encoding="utf-8"))
+    cfg = SACAgent._deserialize_config(meta["config"])
+    agent = SACAgent(obs_dim=meta["obs_dim"], action_dim=meta["action_dim"], cfg=cfg)
+
+    actor_state = torch.load(path / "actor.pt", map_location=agent.device)
+    if "log_2" in actor_state:
+        actor_state = dict(actor_state)
+        actor_state.pop("log_2", None)
+    agent.actor.load_state_dict(actor_state)
+
+    critic_state = torch.load(path / "critic.pt", map_location=agent.device)
+    agent.critic.q1.load_state_dict(critic_state["q1"])
+    agent.critic.q2.load_state_dict(critic_state["q2"])
+
+    target_state = torch.load(path / "critic_target.pt", map_location=agent.device)
+    agent.critic.q1_target.load_state_dict(target_state["q1_target"])
+    agent.critic.q2_target.load_state_dict(target_state["q2_target"])
+
+    log_alpha = torch.load(path / "log_alpha.pt", map_location=agent.device)
+    agent.log_alpha.data.copy_(log_alpha)
+
+    agent.actor_optim.load_state_dict(torch.load(path / "actor_optim.pt", map_location=agent.device))
+    agent.critic_optim.load_state_dict(torch.load(path / "critic_optim.pt", map_location=agent.device))
+    agent.alpha_optim.load_state_dict(torch.load(path / "alpha_optim.pt", map_location=agent.device))
+
+    return agent
 
 
 def run_evaluation(
