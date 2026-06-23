@@ -237,15 +237,14 @@ Implemented from scratch:
 
 ## Stability measures
 
-- Soft target updates: `tau = 0.005` (configurable).
-- `log_std` clamped.
-- Gradient clipping on critic: max norm `= 1.0` (configurable; `0` = disabled).
-- Orthogonal initialization for hidden layers; small uniform init for output layers.
-- No batch norm or layer norm by default.
-
-- Target policy smoothing / clipped target actions (optional configurable noise added to targets).
-- Clipped double-Q (use the minimum of twin critics and optionally clipping target values) to reduce overestimation bias.
-- Optional, opt-in observation normalization / reward scaling utilities for difficult tasks; disabled by default to preserve reproducibility.
+- Soft target updates on critic targets via `tau` (configurable; `tau=0.005` default).
+- Clipped double-Q: targets and actor loss use the minimum of twin critics to reduce overestimation.
+- Stochastic actor stability: `log_std` clamped to [-5, 2] and tanh-squash log-prob correction included (`log(1 - a^2 + 1e-6)`).
+- Gradient clipping on critic updates only, using `gradient_clip_norm` (0 disables).
+- Weight init: orthogonal for hidden layers; small uniform init for actor heads and critic output layer (scale `3e-3`).
+- Entropy tuning: `target_entropy = -action_dim` when unspecified; `log_alpha` optimized separately.
+- Optional reward scaling/clipping applied before storing transitions in the replay buffer; disabled by default.
+- No batch norm or layer norm by default; no target policy smoothing or clipped target actions implemented.
 
 ## Exclusions
 
@@ -258,7 +257,7 @@ Implemented from scratch:
 
 ## Environment Usage
 
-Use Gymnasium continuous control environments as provided. No reward scaling, observation normalization, or action repeat. Use `gymnasium.make(env_id)` only. `render_mode` is set only in `play.py`.
+Use Gymnasium continuous control environments as provided. No observation normalization or action repeat. Reward scaling/clipping is optional and applied only to replay-buffer rewards when enabled. Use `gymnasium.make(env_id)` only. `render_mode` is set only in `play.py`.
 
 Recommended benchmark progression, from simpler to harder:
 "InvertedPendulum-v5"
@@ -302,6 +301,9 @@ lr_critic: 3.0e-4
 lr_alpha: 3.0e-4
 alpha_init: 0.2
 target_entropy: null  # null = auto: -dim(action_space)
+reward_scale_enabled: false
+reward_scale: 1.0
+reward_clip: 0.0
 batch_size: 256
 replay_buffer_size: 1_000_000
 gradient_clip_norm: 1.0  # 0 = disabled

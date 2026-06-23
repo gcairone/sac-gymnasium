@@ -38,7 +38,9 @@ generate_context.sh
 context.txt
 train_profile.py
 .ipynb_checkpoints
-gpu_data
 todo.txt
 train_profile.pstats
 relazione
+other_data/
+AGENTS.md
+slides.txt
