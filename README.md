@@ -1,146 +1,72 @@
 # sac-gymnasium
 
-Overview
---------
-`sac-gymnasium` is a compact, research-focused implementation of Soft Actor-Critic (SAC)
-written in Python 3.10+ and PyTorch (CPU-only). The project emphasizes algorithmic
-correctness, stability, and reproducibility for Gymnasium continuous-control benchmarks.
+Soft Actor-Critic (SAC) implemented from scratch in Python/PyTorch, tested on Gymnasium MuJoCo continuous-control environments. Automatic entropy tuning, twin critics, gradient clipping, and numerically stable log-probability computation. No RL frameworks — plain PyTorch and Gymnasium.
 
-Project layout
---------------
-- `sac/` contains the reusable SAC implementation (actor, critic, agent, replay buffer,
-  config utilities, logging, and helpers).
-- `train.py`, `eval.py`, `play.py`, and `log_analysis.py` are the entry points.
-- `configs/default.yaml` defines the default hyperparameters.
-- `logs/` and `checkpoints/` are created at runtime (kept in git via .gitkeep).
+Layout
+------
+- `sac/` — actor, critic, agent, replay buffer, config, logging utilities
+- `train.py`, `eval.py`, `play.py`, `log_analysis.py` — entry points
+- `configs/` — YAML hyperparameter files
+- `docker/` — Dockerfile and run.sh
 
-Benchmarks Gymnasium
---------------------
-From simpler to harder:
-"InvertedPendulum-v5"
-"InvertedDoublePendulum-v5"
-"Reacher-v5"
-"Pusher-v5"
-"HalfCheetah-v5"
-"Hopper-v5"
-"Walker2d-v5"
-"Swimmer-v5"
-"Ant-v5"
-"Humanoid-v5"
-"HumanoidStandup-v5"
+Results
+-------
+Mean episode return across 9 MuJoCo environments (ordered by difficulty):
 
+![](res/sac_reward.png)
 
+Environments: InvertedPendulum-v5, InvertedDoublePendulum-v5, Reacher-v5, Pusher-v5, HalfCheetah-v5, Hopper-v5, Walker2d-v5, Swimmer-v5, Ant-v5.
 
-Quickstart (Docker)
--------------------
-Build the Docker image from the project root:
+Docker
+------
+Build from the project root (Dockerfile lives in `docker/`):
 
-```bash
-docker build -t sac-gymnasium .
+```
+docker build -t sac-gymnasium -f docker/Dockerfile .
 ```
 
-Start a container with the project mounted (convenience script):
+Run with X11 forwarding and project mounted at `/sac-gymnasium`:
 
-```bash
-./run.sh
+```
+bash docker/run.sh
 ```
 
-Inside the container the project is mounted at `/sac-gymnasium`.
-
-Run tests
----------
-Execute the test suite (inside container or on host with deps installed):
-
-```bash
-pytest test/
-```
-
-Training
---------
-Run training from the project root:
-
-```bash
-python train.py --config configs/default.yaml --env InvertedPendulum-v5 --total_steps 100000
-```
-
-CLI options for `train.py`:
-- `--config` PATH (default: `configs/default.yaml`)
-- `--env` ENV_ID (override env in YAML)
-- `--seed` INT (override seed in YAML)
-- `--total_steps` INT (override total_steps in YAML)
-- `--resume` PATH (checkpoint directory to resume from)
-
-Evaluation (headless)
----------------------
-Evaluate a trained agent or a baseline policy. The `--agent` argument is required and
-can be `zero`, `random`, or a checkpoint directory path containing `meta.json`.
-
-```bash
-python eval.py --agent zero --config configs/default.yaml --env InvertedPendulum-v5
-python eval.py --agent checkpoints/InvertedPendulum_v5/run_<ts>/latest --episodes 10
-```
-
-Key options:
-- `--agent` zero | random | PATH
-- `--config` PATH (used only for zero/random agents)
-- `--env` ENV_ID (override env for zero/random agents)
-- `--episodes` INT (default: 10)
-- `--max_steps_per_env` INT (default: 500)
-- `--policy` deterministic | stochastic (default: deterministic)
-- `--seed` INT (default: 42)
-
-Playback (rendered)
--------------------
-Render episodes with a trained policy or baseline policy. Rendering uses
-`render_mode="human"` and requires a graphical environment.
-
-```bash
-python play.py --agent random --config configs/default.yaml --env InvertedPendulum-v5
-python play.py --agent checkpoints/InvertedPendulum_v5/run_<ts>/latest --episodes 3
-```
-
-Key options:
-- `--agent` zero | random | PATH
-- `--config` PATH (used only for zero/random agents)
-- `--env` ENV_ID (override env for zero/random agents)
-- `--episodes` INT (default: 3)
-- `--max_steps_per_episode` INT (default: 1000)
-- `--policy` deterministic | stochastic (default: deterministic)
-- `--speed` FLOAT (default: 1.0)
-
-Logs and checkpoints
---------------------
-Logs are written under `logs/{env_name}/run_{timestamp}/` and include:
-- `train.csv` with `step, actor_loss, critic_loss, alpha_loss, alpha, mean_q, entropy`
-- `eval.csv` with `step, mean_return, std_return, min_return, max_return, n_episodes,
-  mean_episode_duration`
-- `events.jsonl` with structured events
-
-Checkpoints are written under `checkpoints/{env_name}/run_{timestamp}/` with:
-- `latest/` (overwritten) and `step_{N}/` snapshots
-- `meta.json` (env id, step, episode, config snapshot)
-- `replay_buffer.npz` stored only for `latest/` and on SIGINT for full resumability
-
-Resume training
----------------
-To resume, pass a `latest/` checkpoint directory:
-
-```bash
-python train.py --resume checkpoints/InvertedPendulum_v5/run_<ts>/latest
-```
-
-Log analysis
-------------
-Plot training and evaluation curves from a run directory:
-
-```bash
-python log_analysis.py --log_dir logs/InvertedPendulum_v5/run_<ts> --smooth 10
-python log_analysis.py --log_dir logs/InvertedPendulum_v5/run_<ts> --save
-```
-
-Notes
+Usage
 -----
-- Configuration files live under `configs/` and use YAML + CLI override precedence.
-- The codebase is intentionally compact and avoids framework-like abstractions.
-- See `AGENTS.md` for the full project specification and constraints.
+Training:
 
+```
+python train.py --env HalfCheetah-v5 --total_steps 1000000
+python train.py --config configs/default.yaml --env Ant-v5 --seed 1 --total_steps 3000000
+python train.py --resume checkpoints/HalfCheetah_v5/run_<ts>/latest
+```
+
+Evaluation (headless):
+
+```
+python eval.py --agent checkpoints/HalfCheetah_v5/run_<ts>/latest --episodes 10
+python eval.py --agent random --env HalfCheetah-v5
+```
+
+Playback (rendered, requires display):
+
+```
+python play.py --agent checkpoints/HalfCheetah_v5/run_<ts>/latest --episodes 3
+```
+
+Log analysis:
+
+```
+python log_analysis.py --log_dir logs/HalfCheetah_v5/run_<ts> --smooth 10 --save
+```
+
+Key CLI flags
+-------------
+train.py: `--config`, `--env`, `--seed`, `--total_steps`, `--resume`
+eval.py:  `--agent` (zero|random|PATH), `--env`, `--episodes`, `--policy` (deterministic|stochastic)
+play.py:  `--agent`, `--env`, `--episodes`, `--policy`, `--speed`
+
+References
+----------
+- Haarnoja et al., [Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor](https://arxiv.org/abs/1801.01290), 2018
+- [Gymnasium](https://gymnasium.farama.org/)
