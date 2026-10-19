@@ -5,7 +5,7 @@ Soft Actor-Critic (SAC) implemented from scratch in Python/PyTorch, tested on Gy
 Layout
 ------
 - `sac/` — actor, critic, agent, replay buffer, config, logging utilities
-- `train.py`, `eval.py`, `play.py`, `log_analysis.py` — entry points
+- `train.py`, `eval.py`, `play.py`, `make_gif.py`, `log_analysis.py` — entry points
 - `configs/` — YAML hyperparameter files
 - `docker/` — Dockerfile and run.sh
 
@@ -23,6 +23,10 @@ Each `results/<Env>/` holds the run config, train/eval CSVs and plots. Where pre
 python eval.py --agent results/InvertedPendulum_v5/checkpoint --max_steps_per_episode 1000
 python play.py --agent results/InvertedPendulum_v5/checkpoint
 ```
+
+| InvertedPendulum-v5 | InvertedDoublePendulum-v5 |
+|---|---|
+| ![](results/InvertedPendulum_v5/policy.gif) | ![](results/InvertedDoublePendulum_v5/policy.gif) |
 
 Docker
 ------
@@ -59,6 +63,13 @@ Playback (rendered, requires display):
 
 ```
 python play.py --agent checkpoints/HalfCheetah_v5/run_<ts>/latest --episodes 3
+```
+
+Rollout GIF (headless, needs an offscreen OpenGL backend such as OSMesa):
+
+```
+MUJOCO_GL=osmesa python make_gif.py --agent results/InvertedPendulum_v5/checkpoint --out results/InvertedPendulum_v5/policy.gif
+MUJOCO_GL=osmesa python make_gif.py --agent results/InvertedDoublePendulum_v5/checkpoint --out results/InvertedDoublePendulum_v5/policy.gif --camera_distance 2.2 --camera_lookat_z 0.6
 ```
 
 Log analysis:
