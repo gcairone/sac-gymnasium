@@ -33,6 +33,7 @@ Thumbs.db
 
 # MuJoCo / Gymnasium
 *.mjb
+MUJOCO_LOG.TXT
 mjkey.txt
 generate_context.sh
 context.txt
