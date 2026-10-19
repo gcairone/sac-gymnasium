@@ -17,6 +17,13 @@ Mean episode return across 9 MuJoCo environments (ordered by difficulty):
 
 Environments: InvertedPendulum-v5, InvertedDoublePendulum-v5, Reacher-v5, Pusher-v5, HalfCheetah-v5, Hopper-v5, Walker2d-v5, Swimmer-v5, Ant-v5.
 
+Each `results/<Env>/` holds the run config, train/eval CSVs and plots. Where present, `results/<Env>/checkpoint/` is the final trained agent:
+
+```
+python eval.py --agent results/InvertedPendulum_v5/checkpoint --max_steps_per_episode 1000
+python play.py --agent results/InvertedPendulum_v5/checkpoint
+```
+
 Docker
 ------
 Build from the project root (Dockerfile lives in `docker/`):
