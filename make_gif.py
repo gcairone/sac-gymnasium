@@ -21,16 +21,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--size", type=int, default=320, help="Frame width and height in pixels")
     parser.add_argument("--seed", type=int, default=0, help="Environment reset seed")
     parser.add_argument(
-        "--camera_distance",
-        type=float,
+        "--camera",
         default=None,
-        help="Override the env's default camera distance",
-    )
-    parser.add_argument(
-        "--camera_lookat_z",
-        type=float,
-        default=0.0,
-        help="Camera target height, used with --camera_distance",
+        help='JSON overriding the env\'s default_camera_config, e.g. \'{"distance": 2.2, "lookat": [0, 0, 0.6]}\'',
     )
     return parser.parse_args()
 
@@ -78,12 +71,11 @@ def main() -> None:
     meta = json.loads((path / "meta.json").read_text(encoding="utf-8"))
     agent = SACAgent.load(path)
     env_kwargs = {"render_mode": "rgb_array", "width": args.size, "height": args.size}
-    if args.camera_distance is not None:
-        env_kwargs["default_camera_config"] = {
-            "trackbodyid": 0,
-            "distance": args.camera_distance,
-            "lookat": [0.0, 0.0, args.camera_lookat_z],
-        }
+    if args.camera is not None:
+        camera = json.loads(args.camera)
+        if "lookat" in camera:
+            camera["lookat"] = np.asarray(camera["lookat"], dtype=np.float64)
+        env_kwargs["default_camera_config"] = camera
     env = gym.make(meta["env_id"], **env_kwargs)
 
     try:

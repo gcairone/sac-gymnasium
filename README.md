@@ -27,6 +27,8 @@ python play.py --agent results/InvertedPendulum_v5/checkpoint
 | InvertedPendulum-v5 | InvertedDoublePendulum-v5 | Reacher-v5 |
 |---|---|---|
 | ![](results/InvertedPendulum_v5/policy.gif) | ![](results/InvertedDoublePendulum_v5/policy.gif) | ![](results/Reacher_v5/policy.gif) |
+| **Pusher-v5** | | |
+| ![](results/Pusher_v5/policy.gif) | | |
 
 Docker
 ------
@@ -69,8 +71,9 @@ Rollout GIF (headless, needs an offscreen OpenGL backend such as OSMesa):
 
 ```
 MUJOCO_GL=osmesa python make_gif.py --agent results/InvertedPendulum_v5/checkpoint --out results/InvertedPendulum_v5/policy.gif
-MUJOCO_GL=osmesa python make_gif.py --agent results/InvertedDoublePendulum_v5/checkpoint --out results/InvertedDoublePendulum_v5/policy.gif --camera_distance 2.2 --camera_lookat_z 0.6
+MUJOCO_GL=osmesa python make_gif.py --agent results/InvertedDoublePendulum_v5/checkpoint --out results/InvertedDoublePendulum_v5/policy.gif --camera '{"trackbodyid": 0, "distance": 2.2, "lookat": [0, 0, 0.6]}'
 MUJOCO_GL=osmesa python make_gif.py --agent results/Reacher_v5/checkpoint --out results/Reacher_v5/policy.gif --episodes 6
+MUJOCO_GL=osmesa python make_gif.py --agent results/Pusher_v5/checkpoint --out results/Pusher_v5/policy.gif --episodes 3 --camera '{"trackbodyid": -1, "distance": 2.2, "elevation": -50, "azimuth": 135, "lookat": [0.3, -0.3, -0.3]}'
 ```
 
 Log analysis:
