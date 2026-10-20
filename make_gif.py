@@ -25,7 +25,21 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help='JSON overriding the env\'s default_camera_config, e.g. \'{"distance": 2.2, "lookat": [0, 0, 0.6]}\'',
     )
+    parser.add_argument(
+        "--track",
+        action="store_true",
+        help="Keep the camera centred on the root body in the horizontal plane",
+    )
     return parser.parse_args()
+
+
+def render_frame(env: gym.Env, track: bool) -> np.ndarray:
+    if track:
+        # Gymnasium renders with a free camera, which ignores trackbodyid; follow the root body by hand.
+        unwrapped = env.unwrapped
+        viewer = unwrapped.mujoco_renderer._get_viewer("rgb_array")
+        viewer.cam.lookat[:2] = unwrapped.data.xpos[1][:2]
+    return env.render()
 
 
 def record(
@@ -35,13 +49,14 @@ def record(
     episodes: int,
     frame_skip: int,
     seed: int,
+    track: bool,
 ) -> tuple[list[np.ndarray], list[float]]:
     frames: list[np.ndarray] = []
     returns: list[float] = []
 
     for episode in range(episodes):
         obs, _ = env.reset(seed=seed + episode)
-        frames.append(env.render())
+        frames.append(render_frame(env, track))
         total_reward = 0.0
 
         for step in range(1, steps + 1):
@@ -49,7 +64,7 @@ def record(
             obs, reward, terminated, truncated, _ = env.step(action)
             total_reward += float(reward)
             if step % frame_skip == 0:
-                frames.append(env.render())
+                frames.append(render_frame(env, track))
             if terminated or truncated:
                 break
 
@@ -79,7 +94,7 @@ def main() -> None:
     env = gym.make(meta["env_id"], **env_kwargs)
 
     try:
-        frames, returns = record(agent, env, args.steps, args.episodes, args.frame_skip, args.seed)
+        frames, returns = record(agent, env, args.steps, args.episodes, args.frame_skip, args.seed, args.track)
         # Play back in real time: each kept frame spans frame_skip env steps.
         duration_ms = int(round(1000.0 * env.unwrapped.dt * args.frame_skip))
     finally:

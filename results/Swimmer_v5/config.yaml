@@ -8,6 +8,9 @@ lr_critic: 0.0003
 lr_alpha: 0.0003
 alpha_init: 0.1
 target_entropy: null
+reward_scale_enabled: false
+reward_scale: 1.0
+reward_clip: 0.0
 batch_size: 256
 replay_buffer_size: 1000000
 gradient_clip_norm: 1.0
@@ -21,6 +24,6 @@ updates_per_step: 1
 eval_freq: 10000
 eval_episodes: 10
 checkpoint_freq: 100000
-timestamp: '20260528_112445'
-log_dir: logs/Swimmer_v5/run_20260528_112445
-checkpoint_dir: checkpoints/Swimmer_v5/run_20260528_112445
+timestamp: '20261020_024310'
+log_dir: logs/Swimmer_v5/run_20261020_024310
+checkpoint_dir: checkpoints/Swimmer_v5/run_20261020_024310
