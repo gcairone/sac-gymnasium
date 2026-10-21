@@ -102,7 +102,10 @@ def main() -> None:
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    images = [Image.fromarray(frame) for frame in frames]
+    # One global palette for every frame: per-frame palettes on cropped delta frames render badly in some viewers.
+    sample = np.concatenate(frames[:: max(1, len(frames) // 8)], axis=0)
+    palette = Image.fromarray(sample).quantize(colors=64, method=Image.Quantize.MEDIANCUT)
+    images = [Image.fromarray(frame).quantize(palette=palette, dither=Image.Dither.NONE) for frame in frames]
     images[0].save(out, save_all=True, append_images=images[1:], duration=duration_ms, loop=0, optimize=True)
     print(f"Saved {out} ({len(images)} frames, {duration_ms} ms/frame, returns={[round(r, 2) for r in returns]})")
 
