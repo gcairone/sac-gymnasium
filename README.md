@@ -30,7 +30,7 @@ python play.py --agent results/InvertedPendulum_v5/checkpoint
 | **Pusher-v5** | **HalfCheetah-v5** | **Hopper-v5** |
 | ![](results/Pusher_v5/policy.gif) | ![](results/HalfCheetah_v5/policy.gif) | |
 | **Walker2d-v5** | **Swimmer-v5** | **Ant-v5** |
-| | ![](results/Swimmer_v5/policy.gif) | |
+| | ![](results/Swimmer_v5/policy.gif) | ![](results/Ant_v5/policy.gif) |
 
 Docker
 ------
@@ -78,6 +78,7 @@ MUJOCO_GL=osmesa python make_gif.py --agent results/Reacher_v5/checkpoint --out 
 MUJOCO_GL=osmesa python make_gif.py --agent results/Pusher_v5/checkpoint --out results/Pusher_v5/policy.gif --episodes 3 --camera '{"trackbodyid": -1, "distance": 2.2, "elevation": -50, "azimuth": 135, "lookat": [0.3, -0.3, -0.3]}'
 MUJOCO_GL=osmesa python make_gif.py --agent results/Swimmer_v5/checkpoint --out results/Swimmer_v5/policy.gif --track --steps 400 --frame_skip 4
 MUJOCO_GL=osmesa python make_gif.py --agent results/HalfCheetah_v5/checkpoint --out results/HalfCheetah_v5/policy.gif --track --steps 60 --frame_skip 1
+MUJOCO_GL=osmesa python make_gif.py --agent results/Ant_v5/checkpoint --out results/Ant_v5/policy.gif --track --steps 100 --frame_skip 2
 ```
 
 Log analysis:
