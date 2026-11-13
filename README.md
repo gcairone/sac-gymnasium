@@ -104,9 +104,15 @@ Humanoid
 `configs/10_humanoid_v5.yaml` differs from the other configs in two ways:
 
 - `rescale_actions: true`. With `train_freq: 1`, a run without it stays around 400 return (episodes of ~100 steps) after 300k steps, against 3000-4700 with it.
-- `train_freq: 2`. On CPU an update costs ~40x an environment step, so halving the update rate doubles the environment steps per hour. Over the same 1M updates (about 6 h on one core), `train_freq: 1` reached 5004 ± 849 at 1M steps, after a transient policy collapse at 970k steps; `train_freq: 2` reached 5758 ± 20 at 2M steps with no collapse.
+- `train_freq: 2`. On CPU an update costs ~40x an environment step, so halving the update rate doubles the environment steps per hour. Over the same 1M updates (about 6 h on one core), `train_freq: 1` reached 5004 ± 849 at 1M steps, after a transient collapse to near-zero return at 970k steps; `train_freq: 2` reached 5758 ± 20 at 2M steps without such a collapse.
 
-The run in `results/Humanoid_v5/` was launched with `total_steps: 4000000` and stopped at 2M; `checkpoint/` is the 2M-step periodic checkpoint.
+The run in `results/Humanoid_v5/` (seed 0) was launched with `total_steps: 4000000` and stopped at 2M; `checkpoint/` is the 2M-step periodic checkpoint.
+
+Caveats:
+
+- The comparison runs (`train_freq: 1`, no `rescale_actions`, and a second seed of the `train_freq: 2` config) are not versioned: only `results/Humanoid_v5/` keeps logs and checkpoints. The second seed reached 5522 ± 110 at 1.4M steps (independent eval, same protocol) and was then stopped.
+- Evaluation is not monotonic: between 1.1M and 1.9M steps several periodic checkpoints of the kept run score 3500-5200 with large spread because some episodes fall early. The 2M checkpoint is a stable point, with no guarantee it stays so with more training.
+- Humanoid-v5 has no registered reward threshold in Gymnasium. About 5 of each step's reward is the healthy bonus, so a full 1000-step episode already scores ~5000; 5758 means walking upright for the whole episode at moderate forward speed.
 
 Key CLI flags
 -------------
