@@ -26,12 +26,12 @@ activation: relu
 
 # Training schedule
 warmup_steps: 10_000
-train_freq: 1
+train_freq: 2  # one update every 2 env steps: updates dominate CPU time, env steps are ~40x cheaper
 train_log_freq: 100
 updates_per_step: 1
 
 # Evaluation
-eval_freq: 10_000
+eval_freq: 20_000
 eval_episodes: 10
 
 # Checkpointing

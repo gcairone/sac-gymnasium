@@ -18,6 +18,8 @@ Mean episode return across 9 MuJoCo environments (ordered by difficulty):
 
 Environments: InvertedPendulum-v5, InvertedDoublePendulum-v5, Reacher-v5, Pusher-v5, HalfCheetah-v5, Hopper-v5, Walker2d-v5, Swimmer-v5, Ant-v5.
 
+Humanoid-v5 was added later (not in the figure): 5758 ± 20 return at 2M steps (independent eval, 20 episodes, seed 1234, all episodes run the full 1000 steps). Curve: `results/Humanoid_v5/eval_metrics.png`.
+
 Each `results/<Env>/` holds the run config, train/eval CSVs and plots, and `checkpoint/` with the final trained agent. Hopper and Walker2d become less stable late in training, so they also keep `checkpoint_best/`, the periodic checkpoint with the best independent eval (20 episodes, seed 1234): Hopper at 1M steps (3515 ± 20 vs 3143 ± 447 final), Walker2d at 1.8M steps (4891 ± 29 vs 2851 ± 2346 final). Their GIFs show `checkpoint_best/`.
 
 ```
@@ -32,6 +34,8 @@ python play.py --agent results/InvertedPendulum_v5/checkpoint
 | ![](results/Pusher_v5/policy.gif) | ![](results/HalfCheetah_v5/policy.gif) | ![](results/Hopper_v5/policy.gif) |
 | **Walker2d-v5** | **Swimmer-v5** | **Ant-v5** |
 | ![](results/Walker2d_v5/policy.gif) | ![](results/Swimmer_v5/policy.gif) | ![](results/Ant_v5/policy.gif) |
+| **Humanoid-v5** | | |
+| ![](results/Humanoid_v5/policy.gif) | | |
 
 Docker
 ------
@@ -82,6 +86,7 @@ MUJOCO_GL=osmesa python make_gif.py --agent results/HalfCheetah_v5/checkpoint --
 MUJOCO_GL=osmesa python make_gif.py --agent results/Hopper_v5/checkpoint_best --out results/Hopper_v5/policy.gif --track --steps 400 --frame_skip 8
 MUJOCO_GL=osmesa python make_gif.py --agent results/Walker2d_v5/checkpoint_best --out results/Walker2d_v5/policy.gif --track --steps 400 --frame_skip 8
 MUJOCO_GL=osmesa python make_gif.py --agent results/Ant_v5/checkpoint --out results/Ant_v5/policy.gif --track --steps 100 --frame_skip 2
+MUJOCO_GL=osmesa python make_gif.py --agent results/Humanoid_v5/checkpoint --out results/Humanoid_v5/policy.gif --track --steps 240 --frame_skip 4 --camera '{"trackbodyid": 1, "distance": 4.5, "elevation": -12, "azimuth": 110, "lookat": [0, 0, 0.9]}'
 ```
 
 Log analysis:
@@ -93,6 +98,15 @@ python log_analysis.py --log_dir logs/HalfCheetah_v5/run_<ts> --smooth 10 --save
 Action bounds
 -------------
 The policy outputs actions in `[-1, 1]`. With `rescale_actions: true` they are mapped linearly onto the environment's bounds; with the default `false` they are only clipped to them. Rescaling matters when the bounds are narrower than `[-1, 1]` (Humanoid: `[-0.4, 0.4]`). The flag is stored in the checkpoint, so `eval.py`, `play.py` and `make_gif.py` apply it automatically.
+
+Humanoid
+--------
+`configs/10_humanoid_v5.yaml` differs from the other configs in two ways:
+
+- `rescale_actions: true`. With `train_freq: 1`, a run without it stays around 400 return (episodes of ~100 steps) after 300k steps, against 3000-4700 with it.
+- `train_freq: 2`. On CPU an update costs ~40x an environment step, so halving the update rate doubles the environment steps per hour. Over the same 1M updates (about 6 h on one core), `train_freq: 1` reached 5004 ± 849 at 1M steps, after a transient policy collapse at 970k steps; `train_freq: 2` reached 5758 ± 20 at 2M steps with no collapse.
+
+The run in `results/Humanoid_v5/` was launched with `total_steps: 4000000` and stopped at 2M; `checkpoint/` is the 2M-step periodic checkpoint.
 
 Key CLI flags
 -------------
