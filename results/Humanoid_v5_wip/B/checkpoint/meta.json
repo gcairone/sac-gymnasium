@@ -3,8 +3,8 @@
   "action_dim": 17,
   "env_id": "Humanoid-v5",
   "timestamp": "20261113_150941",
-  "step": 1000000,
-  "episode": 3545,
+  "step": 1500000,
+  "episode": 4130,
   "config": {
     "env": "Humanoid-v5",
     "seed": 0,
