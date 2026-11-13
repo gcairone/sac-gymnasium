@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable
 
 import numpy as np
 import torch
@@ -60,6 +60,16 @@ def set_seed(seed: int) -> None:
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+
+
+def make_env(env_id: str, rescale_actions: bool = False, **kwargs: Any):
+    """Create an environment, optionally mapping the policy's [-1, 1] actions onto the env's bounds."""
+    import gymnasium as gym
+
+    env = gym.make(env_id, **kwargs)
+    if rescale_actions:
+        env = gym.wrappers.RescaleAction(env, min_action=-1.0, max_action=1.0)
+    return env
 
 
 def get_device() -> torch.device:

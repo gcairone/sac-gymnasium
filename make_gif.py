@@ -8,6 +8,7 @@ import gymnasium as gym
 import numpy as np
 from PIL import Image
 
+from sac import utils
 from sac.agent import SACAgent
 
 
@@ -91,7 +92,7 @@ def main() -> None:
         if "lookat" in camera:
             camera["lookat"] = np.asarray(camera["lookat"], dtype=np.float64)
         env_kwargs["default_camera_config"] = camera
-    env = gym.make(meta["env_id"], **env_kwargs)
+    env = utils.make_env(meta["env_id"], agent.cfg.rescale_actions, **env_kwargs)
 
     try:
         frames, returns = record(agent, env, args.steps, args.episodes, args.frame_skip, args.seed, args.track)

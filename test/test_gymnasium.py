@@ -43,3 +43,27 @@ def test_env_headless_basic_api(env_id):
         assert isinstance(info, dict)
 
     env.close()
+
+
+def test_make_env_rescales_actions():
+    from sac import utils
+
+    try:
+        plain = utils.make_env("InvertedPendulum-v5")
+        scaled = utils.make_env("InvertedPendulum-v5", rescale_actions=True)
+    except Exception as e:
+        pytest.skip(f"Could not create environment: {e}")
+
+    # InvertedPendulum-v5 has bounds [-3, 3]; the rescaled env exposes [-1, 1].
+    assert np.allclose(plain.action_space.high, 3.0)
+    assert np.allclose(scaled.action_space.low, -1.0)
+    assert np.allclose(scaled.action_space.high, 1.0)
+
+    plain.reset(seed=0)
+    scaled.reset(seed=0)
+    obs_plain, *_ = plain.step(np.array([3.0], dtype=np.float32))
+    obs_scaled, *_ = scaled.step(np.array([1.0], dtype=np.float32))
+    assert np.allclose(obs_plain, obs_scaled)
+
+    plain.close()
+    scaled.close()

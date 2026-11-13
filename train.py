@@ -60,7 +60,7 @@ def run_eval(
     max_steps: int,
     seed: int,
 ) -> dict[str, float]:
-    env = gym.make(env_id)
+    env = utils.make_env(env_id, agent.cfg.rescale_actions)
     env.action_space.seed(seed)
 
     returns: list[float] = []
@@ -116,7 +116,7 @@ def train(cfg: SACConfig | None, resume_path: Path | None) -> None:
 
     utils.set_seed(cfg.seed)
 
-    env = gym.make(cfg.env)
+    env = utils.make_env(cfg.env, cfg.rescale_actions)
     env.action_space.seed(cfg.seed)
     obs_dim = _space_dim(env.observation_space, "observation_space")
     action_dim = _space_dim(env.action_space, "action_space")
@@ -189,11 +189,12 @@ def train(cfg: SACConfig | None, resume_path: Path | None) -> None:
 
                 if state.step >= cfg.warmup_steps and state.step % cfg.train_freq == 0:
                     if len(agent.replay_buffer) >= cfg.batch_size:
-                        metrics: dict[str, float] | None = None
-                        for _ in range(cfg.updates_per_step):
-                            metrics = agent.train_step()
                         # Log training metrics only every cfg.train_log_freq env steps
-                        if metrics is not None and (state.step % cfg.train_log_freq == 0):
+                        log_now = state.step % cfg.train_log_freq == 0
+                        metrics: dict[str, float] = {}
+                        for _ in range(cfg.updates_per_step):
+                            metrics = agent.train_step(compute_metrics=log_now)
+                        if log_now:
                             logger.log_train(state.step, metrics)
 
                 if state.step % cfg.eval_freq == 0:

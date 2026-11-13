@@ -59,14 +59,14 @@ def load_agent_and_env(agent_arg: str, cfg: SACConfig) -> tuple[SACAgent | str, 
         env_id = meta.get("env_id")
         if not env_id:
             raise ValueError("meta.json missing env_id")
-        env = gym.make(env_id, render_mode="human")
         agent = load_agent_checkpoint(path)
+        env = utils.make_env(env_id, agent.cfg.rescale_actions, render_mode="human")
         return agent, env
 
     if agent_arg not in {"zero", "random"}:
         raise ValueError("--agent must be 'zero', 'random', or a checkpoint path")
 
-    env = gym.make(cfg.env, render_mode="human")
+    env = utils.make_env(cfg.env, cfg.rescale_actions, render_mode="human")
     return agent_arg, env
 
 

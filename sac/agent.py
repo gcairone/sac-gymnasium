@@ -52,8 +52,8 @@ class SACAgent:
         )
 
         self.actor_optim = torch.optim.Adam(self.actor.parameters(), lr=cfg.lr_actor)
-        critic_params = list(self.critic.q1.parameters()) + list(self.critic.q2.parameters())
-        self.critic_optim = torch.optim.Adam(critic_params, lr=cfg.lr_critic)
+        self._critic_params = list(self.critic.q1.parameters()) + list(self.critic.q2.parameters())
+        self.critic_optim = torch.optim.Adam(self._critic_params, lr=cfg.lr_critic)
 
         log_alpha = math.log(cfg.alpha_init)
         self.log_alpha = nn.Parameter(torch.tensor(log_alpha, dtype=torch.float32, device=self.device))
@@ -87,21 +87,26 @@ class SACAgent:
         scaled_reward = self._scale_reward(reward)
         self.replay_buffer.add(obs, action, scaled_reward, done, next_obs)
 
-    def train_step(self) -> dict[str, float]:
+    def train_step(self, compute_metrics: bool = True) -> dict[str, float]:
+        """Run one SAC update. With compute_metrics=False the metrics are skipped and {} is returned."""
         batch = self.replay_buffer.sample(self.cfg.batch_size)
 
         critic_loss = self._compute_critic_loss(batch)
         self.critic_optim.zero_grad()
         critic_loss.backward()
         if self.cfg.gradient_clip_norm > 0.0:
-            params = list(self.critic.q1.parameters()) + list(self.critic.q2.parameters())
-            torch.nn.utils.clip_grad_norm_(params, self.cfg.gradient_clip_norm)
+            torch.nn.utils.clip_grad_norm_(self._critic_params, self.cfg.gradient_clip_norm)
         self.critic_optim.step()
 
+        # The actor loss only needs dQ/da: freeze the critic so backward skips its weight gradients.
+        for param in self._critic_params:
+            param.requires_grad_(False)
         actor_loss, log_prob = self._compute_actor_loss(batch)
         self.actor_optim.zero_grad()
         actor_loss.backward()
         self.actor_optim.step()
+        for param in self._critic_params:
+            param.requires_grad_(True)
 
         alpha_loss = self._compute_alpha_loss(log_prob)
         self.alpha_optim.zero_grad()
@@ -109,6 +114,9 @@ class SACAgent:
         self.alpha_optim.step()
 
         self.critic.soft_update_targets(self.cfg.tau)
+
+        if not compute_metrics:
+            return {}
 
         with torch.no_grad():
             q1, q2 = self.critic(batch["obs"], batch["actions"])
@@ -232,6 +240,8 @@ class SACAgent:
             data["reward_scale"] = 1.0
         if "reward_clip" not in data:
             data["reward_clip"] = 0.0
+        if "rescale_actions" not in data:
+            data["rescale_actions"] = False
         data["log_dir"] = Path(data["log_dir"])
         data["checkpoint_dir"] = Path(data["checkpoint_dir"])
         return SACConfig(**data)

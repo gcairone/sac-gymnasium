@@ -76,6 +76,18 @@ def test_save_config_round_trip(tmp_path: Path) -> None:
     assert saved["reward_scale_enabled"] is False
     assert saved["reward_scale"] == 1.0
     assert saved["reward_clip"] == 0.0
+    assert saved["rescale_actions"] is False
+
+
+def test_rescale_actions_flag(tmp_path: Path) -> None:
+    data = _base_config_dict()
+    data["rescale_actions"] = True
+    cfg = config.build_config(_write_yaml(tmp_path / "config.yaml", data), {})
+    assert cfg.rescale_actions is True
+
+    data["rescale_actions"] = 1
+    with pytest.raises(ValueError):
+        config.build_config(_write_yaml(tmp_path / "bad.yaml", data), {})
 
 
 def test_build_config_validation_errors(tmp_path: Path) -> None:

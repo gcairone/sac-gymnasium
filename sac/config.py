@@ -24,6 +24,7 @@ class SACConfig:
     reward_scale_enabled: bool
     reward_scale: float
     reward_clip: float
+    rescale_actions: bool
     batch_size: int
     replay_buffer_size: int
     gradient_clip_norm: float
@@ -141,6 +142,11 @@ def _validate_and_normalize(values: dict[str, Any]) -> dict[str, Any]:
         reward_scale = 1.0
         reward_clip = 0.0
 
+    rescale_actions = values.get("rescale_actions", False)
+    if rescale_actions is None:
+        rescale_actions = False
+    rescale_actions = _require_bool(rescale_actions, "rescale_actions")
+
     batch_size = _require_int(values["batch_size"], "batch_size", min_value=1)
     replay_buffer_size = _require_int(
         values["replay_buffer_size"], "replay_buffer_size", min_value=1
@@ -176,6 +182,7 @@ def _validate_and_normalize(values: dict[str, Any]) -> dict[str, Any]:
         "reward_scale_enabled": reward_scale_enabled,
         "reward_scale": reward_scale,
         "reward_clip": reward_clip,
+        "rescale_actions": rescale_actions,
         "batch_size": batch_size,
         "replay_buffer_size": replay_buffer_size,
         "gradient_clip_norm": gradient_clip_norm,

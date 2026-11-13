@@ -7,6 +7,7 @@ Layout
 - `sac/` — actor, critic, agent, replay buffer, config, logging utilities
 - `train.py`, `eval.py`, `play.py`, `make_gif.py`, `log_analysis.py` — entry points
 - `configs/` — YAML hyperparameter files
+- `test/` — pytest suite
 - `docker/` — Dockerfile and run.sh
 
 Results
@@ -88,6 +89,10 @@ Log analysis:
 ```
 python log_analysis.py --log_dir logs/HalfCheetah_v5/run_<ts> --smooth 10 --save
 ```
+
+Action bounds
+-------------
+The policy outputs actions in `[-1, 1]`. With `rescale_actions: true` they are mapped linearly onto the environment's bounds; with the default `false` they are only clipped to them. Rescaling matters when the bounds are narrower than `[-1, 1]` (Humanoid: `[-0.4, 0.4]`). The flag is stored in the checkpoint, so `eval.py`, `play.py` and `make_gif.py` apply it automatically.
 
 Key CLI flags
 -------------

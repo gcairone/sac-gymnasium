@@ -29,6 +29,7 @@ def _make_cfg(tmp_path: Path, tau: float = 0.5) -> SACConfig:
         reward_scale_enabled=False,
         reward_scale=1.0,
         reward_clip=0.0,
+        rescale_actions=False,
         batch_size=4,
         replay_buffer_size=100,
         gradient_clip_norm=0.5,
@@ -234,3 +235,21 @@ def test_train_step_updates_actor_critic_and_alpha(tmp_path: Path) -> None:
     assert actor_changed
     assert critic_changed
     assert not torch.allclose(alpha_before, agent.log_alpha.detach())
+
+
+def test_train_step_without_metrics_still_updates(tmp_path: Path) -> None:
+    cfg = _make_cfg(tmp_path)
+    agent = SACAgent(obs_dim=3, action_dim=2, cfg=cfg)
+    _fill_buffer(agent, n=12)
+    critic_before = [param.detach().clone() for param in agent.critic.q1.parameters()]
+
+    metrics = agent.train_step(compute_metrics=False)
+
+    assert metrics == {}
+    assert any(
+        not torch.equal(before, after)
+        for before, after in zip(critic_before, agent.critic.q1.parameters())
+    )
+    # The critic is frozen only for the actor update.
+    assert all(param.requires_grad for param in agent.critic.q1.parameters())
+    assert all(param.requires_grad for param in agent.critic.q2.parameters())
